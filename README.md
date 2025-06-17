@@ -22,8 +22,8 @@ A command-line tool to index and search through Slack workspace archives. This t
 Download the latest release for your platform from the [releases page](https://github.com/raesene/k8s-slack-searcher/releases).
 
 Available platforms:
-- Linux (amd64, arm64)
-- macOS (amd64, arm64) 
+- Linux (amd64)
+- macOS (arm64/Apple Silicon) 
 - Windows (amd64)
 
 ### Install via Go
