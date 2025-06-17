@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"k8s-slack-searcher/pkg/searcher"
+	"github.com/raesene/k8s-slack-searcher/pkg/searcher"
 
 	"github.com/spf13/cobra"
 )

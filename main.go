@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"k8s-slack-searcher/cmd"
+	"github.com/raesene/k8s-slack-searcher/cmd"
 
 	"github.com/spf13/cobra"
 )

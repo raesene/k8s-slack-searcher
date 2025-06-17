@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"k8s-slack-searcher/pkg/indexer"
+	"github.com/raesene/k8s-slack-searcher/pkg/indexer"
 
 	"github.com/spf13/cobra"
 )

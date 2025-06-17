@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"k8s-slack-searcher/pkg/models"
+	"github.com/raesene/k8s-slack-searcher/pkg/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )

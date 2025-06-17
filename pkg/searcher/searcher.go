@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"k8s-slack-searcher/pkg/database"
-	"k8s-slack-searcher/pkg/models"
+	"github.com/raesene/k8s-slack-searcher/pkg/database"
+	"github.com/raesene/k8s-slack-searcher/pkg/models"
 )
 
 type Searcher struct {
