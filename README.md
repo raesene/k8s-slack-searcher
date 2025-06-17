@@ -40,11 +40,6 @@ cd k8s-slack-searcher
 go build -o k8s-slack-searcher
 ```
 
-### Docker
-
-```bash
-docker pull ghcr.io/raesene/k8s-slack-searcher:latest
-```
 
 ## Usage
 

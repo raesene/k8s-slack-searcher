@@ -1,4 +1,4 @@
-version: 2
+project_name: k8s-slack-searcher
 
 before:
   hooks:
@@ -13,26 +13,13 @@ builds:
     goos:
       - linux
       - darwin
-    goarch:
-      - amd64
-      - arm64
-    flags:
-      - -trimpath
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
-      - -X main.date={{.Date}}
-  
-  # Separate build for Windows without ARM64 due to CGO complexity
-  - id: k8s-slack-searcher-windows
-    binary: k8s-slack-searcher
-    env:
-      - CGO_ENABLED=1
-    goos:
       - windows
     goarch:
       - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
     flags:
       - -trimpath
     ldflags:
@@ -47,15 +34,9 @@ archives:
       - k8s-slack-searcher
     format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    files:
-      - README.md
-      - LICENSE
-  
-  - id: windows
-    builds:
-      - k8s-slack-searcher-windows
-    format: zip
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
     files:
       - README.md
       - LICENSE
@@ -102,25 +83,3 @@ release:
     ### Changes
   footer: |
     **Full Changelog**: https://github.com/raesene/k8s-slack-searcher/compare/{{.PreviousTag}}...{{.Tag}}
-
-# Docker images
-dockers:
-  - id: k8s-slack-searcher
-    builds:
-      - k8s-slack-searcher
-    image_templates:
-      - "ghcr.io/raesene/k8s-slack-searcher:{{ .Tag }}"
-      - "ghcr.io/raesene/k8s-slack-searcher:v{{ .Major }}"
-      - "ghcr.io/raesene/k8s-slack-searcher:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/raesene/k8s-slack-searcher:latest"
-    dockerfile: Dockerfile
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source=https://github.com/raesene/k8s-slack-searcher"
-    extra_files:
-      - LICENSE
-      - README.md
