@@ -13,14 +13,9 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
-    # Windows ARM64 and CGO cross-compilation can be complex
-    ignore:
-      - goos: windows
-        goarch: arm64
     flags:
       - -trimpath
     ldflags:
@@ -28,16 +23,39 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
-    # For CGO cross-compilation, we'll use the default Go toolchain
-    # This works well for most common platforms
+  
+  # Separate build for Windows without ARM64 due to CGO complexity
+  - id: k8s-slack-searcher-windows
+    binary: k8s-slack-searcher
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - windows
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
 
 archives:
   - id: default
+    builds:
+      - k8s-slack-searcher
     format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    format_overrides:
-      - goos: windows
-        format: zip
+    files:
+      - README.md
+      - LICENSE
+  
+  - id: windows
+    builds:
+      - k8s-slack-searcher-windows
+    format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
       - LICENSE
@@ -83,18 +101,13 @@ release:
     
     ### Changes
   footer: |
-    ### Docker Images
-    
-    Docker images are available at:
-    ```bash
-    docker pull ghcr.io/raesene/k8s-slack-searcher:{{.Tag}}
-    ```
-    
     **Full Changelog**: https://github.com/raesene/k8s-slack-searcher/compare/{{.PreviousTag}}...{{.Tag}}
 
 # Docker images
 dockers:
   - id: k8s-slack-searcher
+    builds:
+      - k8s-slack-searcher
     image_templates:
       - "ghcr.io/raesene/k8s-slack-searcher:{{ .Tag }}"
       - "ghcr.io/raesene/k8s-slack-searcher:v{{ .Major }}"
