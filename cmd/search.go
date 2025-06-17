@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/raesene/k8s-slack-searcher/pkg/searcher"
 
@@ -13,13 +16,13 @@ var searchCmd = &cobra.Command{
 	Short: "Search messages in a channel database",
 	Long: `Search for messages in a channel database using full-text search.
 	
-The search supports SQLite FTS5 syntax including quoted phrases, 
+The search supports SQLite FTS4 syntax including quoted phrases, 
 boolean operators (AND, OR, NOT), and prefix matching.
 
 Examples:
   k8s-slack-searcher search "authentication" --database sig-auth
   k8s-slack-searcher search "cert* AND rotate*" --database sig-auth
-  k8s-slack-searcher search "RBAC OR authentication" --database sig-auth`,
+  k8s-slack-searcher search "RBAC OR authentication" --database sig-auth --html search_results.html`,
 	Args: cobra.ExactArgs(1),
 	RunE: runSearch,
 }
@@ -35,6 +38,7 @@ var (
 	databaseName string
 	searchLimit  int
 	showStats    bool
+	htmlOutput   string
 )
 
 func init() {
@@ -44,6 +48,8 @@ func init() {
 		"Maximum number of results to return")
 	searchCmd.Flags().BoolVar(&showStats, "stats", false, 
 		"Show database statistics")
+	searchCmd.Flags().StringVar(&htmlOutput, "html", "", 
+		"Generate HTML output file with thread context (e.g., --html results.html)")
 	
 	searchCmd.MarkFlagRequired("database")
 }
@@ -79,18 +85,57 @@ func runSearch(cmd *cobra.Command, args []string) error {
 	// Perform search
 	fmt.Printf("Searching for: %s\n", query)
 	fmt.Printf("Database: %s\n", databaseName)
-	fmt.Printf("Limit: %d\n\n", searchLimit)
+	fmt.Printf("Limit: %d\n", searchLimit)
+	
+	if htmlOutput != "" {
+		fmt.Printf("HTML output: %s\n", htmlOutput)
+	}
+	fmt.Print("\n")
 	
 	results, err := search.Search(query, searchLimit)
 	if err != nil {
 		return fmt.Errorf("search failed: %w", err)
 	}
 	
-	// Format and display results
-	output := searcher.FormatResults(results)
-	fmt.Print(output)
+	// Generate HTML output if requested
+	if htmlOutput != "" {
+		// Create output directory if needed
+		if dir := filepath.Dir(htmlOutput); dir != "." {
+			if err := ensureDir(dir); err != nil {
+				return fmt.Errorf("failed to create output directory: %w", err)
+			}
+		}
+		
+		// Generate HTML file
+		err := search.GenerateHTMLOutput(results, query, databaseName, htmlOutput)
+		if err != nil {
+			return fmt.Errorf("failed to generate HTML output: %w", err)
+		}
+		
+		fmt.Printf("HTML output generated: %s\n", htmlOutput)
+		
+		// Also show text output for immediate feedback
+		if len(results) > 0 {
+			fmt.Printf("Found %d result(s) with thread context.\n", len(results))
+		} else {
+			fmt.Println("No results found.")
+		}
+	} else {
+		// Format and display results in text format
+		output := searcher.FormatResults(results)
+		fmt.Print(output)
+	}
 	
 	return nil
+}
+
+// ensureDir creates a directory if it doesn't exist
+func ensureDir(dir string) error {
+	if strings.TrimSpace(dir) == "" || dir == "." {
+		return nil
+	}
+	
+	return os.MkdirAll(dir, 0755)
 }
 
 func runList(cmd *cobra.Command, args []string) error {

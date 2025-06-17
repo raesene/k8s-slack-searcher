@@ -46,6 +46,12 @@ type Message struct {
 	Timestamp string    `json:"ts" db:"timestamp"`
 	Date      time.Time `db:"date"`
 	Filename  string    `db:"filename"`
+	// Thread information
+	ThreadTS       string `json:"thread_ts" db:"thread_ts"`
+	ParentUserID   string `json:"parent_user_id" db:"parent_user_id"`
+	ReplyCount     int    `json:"reply_count" db:"reply_count"`
+	ReplyUsersCount int   `json:"reply_users_count" db:"reply_users_count"`
+	LatestReply    string `json:"latest_reply" db:"latest_reply"`
 	// User information joined from users table
 	UserName     string `db:"user_name"`
 	UserRealName string `db:"user_real_name"`

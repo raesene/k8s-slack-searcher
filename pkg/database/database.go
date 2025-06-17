@@ -97,6 +97,11 @@ func (db *DB) createTables() error {
 			timestamp TEXT,
 			date DATETIME,
 			filename TEXT,
+			thread_ts TEXT,
+			parent_user_id TEXT,
+			reply_count INTEGER DEFAULT 0,
+			reply_users_count INTEGER DEFAULT 0,
+			latest_reply TEXT,
 			FOREIGN KEY (user_id) REFERENCES users (id)
 		)`,
 		
@@ -140,6 +145,7 @@ func (db *DB) createTables() error {
 		`CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_messages_date ON messages(date)`,
 		`CREATE INDEX IF NOT EXISTS idx_messages_filename ON messages(filename)`,
+		`CREATE INDEX IF NOT EXISTS idx_messages_thread_ts ON messages(thread_ts)`,
 	}
 
 	for _, query := range queries {
@@ -171,11 +177,13 @@ func (db *DB) InsertChannel(channel *models.Channel) error {
 
 // InsertMessage inserts a message into the database
 func (db *DB) InsertMessage(message *models.Message) error {
-	query := `INSERT INTO messages (user_id, text, type, subtype, timestamp, date, filename)
-			  VALUES (?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO messages (user_id, text, type, subtype, timestamp, date, filename, 
+							   thread_ts, parent_user_id, reply_count, reply_users_count, latest_reply)
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	
 	_, err := db.conn.Exec(query, message.UserID, message.Text, message.Type, message.Subtype, 
-						  message.Timestamp, message.Date, message.Filename)
+						  message.Timestamp, message.Date, message.Filename, message.ThreadTS,
+						  message.ParentUserID, message.ReplyCount, message.ReplyUsersCount, message.LatestReply)
 	return err
 }
 
@@ -191,6 +199,11 @@ func (db *DB) SearchMessages(query string, limit int) ([]*models.SearchResult, e
 			m.timestamp,
 			m.date,
 			m.filename,
+			m.thread_ts,
+			m.parent_user_id,
+			m.reply_count,
+			m.reply_users_count,
+			m.latest_reply,
 			COALESCE(u.name, '') as user_name,
 			COALESCE(u.real_name, '') as user_real_name,
 			0.0 as rank,
@@ -219,6 +232,11 @@ func (db *DB) SearchMessages(query string, limit int) ([]*models.SearchResult, e
 			&result.Timestamp,
 			&result.Date,
 			&result.Filename,
+			&result.ThreadTS,
+			&result.ParentUserID,
+			&result.ReplyCount,
+			&result.ReplyUsersCount,
+			&result.LatestReply,
 			&result.UserName,
 			&result.UserRealName,
 			&result.Rank,
@@ -231,6 +249,66 @@ func (db *DB) SearchMessages(query string, limit int) ([]*models.SearchResult, e
 	}
 
 	return results, nil
+}
+
+// GetThreadMessages retrieves all messages in a thread (parent + replies) ordered by timestamp
+func (db *DB) GetThreadMessages(threadTS string) ([]*models.Message, error) {
+	sqlQuery := `
+		SELECT 
+			m.id,
+			m.user_id,
+			m.text,
+			m.type,
+			m.subtype,
+			m.timestamp,
+			m.date,
+			m.filename,
+			m.thread_ts,
+			m.parent_user_id,
+			m.reply_count,
+			m.reply_users_count,
+			m.latest_reply,
+			COALESCE(u.name, '') as user_name,
+			COALESCE(u.real_name, '') as user_real_name
+		FROM messages m
+		LEFT JOIN users u ON u.id = m.user_id
+		WHERE (m.timestamp = ? OR m.thread_ts = ?)
+		AND m.type = 'message'
+		ORDER BY m.timestamp ASC`
+
+	rows, err := db.conn.Query(sqlQuery, threadTS, threadTS)
+	if err != nil {
+		return nil, fmt.Errorf("thread query failed: %w", err)
+	}
+	defer rows.Close()
+
+	var messages []*models.Message
+	for rows.Next() {
+		message := &models.Message{}
+		err := rows.Scan(
+			&message.ID,
+			&message.UserID,
+			&message.Text,
+			&message.Type,
+			&message.Subtype,
+			&message.Timestamp,
+			&message.Date,
+			&message.Filename,
+			&message.ThreadTS,
+			&message.ParentUserID,
+			&message.ReplyCount,
+			&message.ReplyUsersCount,
+			&message.LatestReply,
+			&message.UserName,
+			&message.UserRealName,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan message: %w", err)
+		}
+		messages = append(messages, message)
+	}
+
+	return messages, nil
 }
 
 // GetStats returns basic statistics about the database

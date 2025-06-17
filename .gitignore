@@ -61,3 +61,6 @@ source-data/
 
 # GoReleaser artifacts
 dist/
+
+# HTML output files from search testing
+*.html

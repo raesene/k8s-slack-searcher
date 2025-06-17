@@ -221,6 +221,20 @@ func (idx *Indexer) processMessageFile(filepath, filename string) error {
 		timestamp, _ := msgMap["ts"].(string)
 		msgType, _ := msgMap["type"].(string)
 		subtype, _ := msgMap["subtype"].(string)
+		
+		// Parse thread information
+		threadTS, _ := msgMap["thread_ts"].(string)
+		parentUserID, _ := msgMap["parent_user_id"].(string)
+		replyCount := 0
+		replyUsersCount := 0
+		latestReply, _ := msgMap["latest_reply"].(string)
+		
+		if rc, ok := msgMap["reply_count"].(float64); ok {
+			replyCount = int(rc)
+		}
+		if ruc, ok := msgMap["reply_users_count"].(float64); ok {
+			replyUsersCount = int(ruc)
+		}
 
 		// Create message with parsed timestamp
 		msgTime := date
@@ -231,13 +245,18 @@ func (idx *Indexer) processMessageFile(filepath, filename string) error {
 		}
 
 		message := &models.Message{
-			UserID:    userID,
-			Text:      text,
-			Type:      msgType,
-			Subtype:   subtype,
-			Timestamp: timestamp,
-			Date:      msgTime,
-			Filename:  filename,
+			UserID:          userID,
+			Text:            text,
+			Type:            msgType,
+			Subtype:         subtype,
+			Timestamp:       timestamp,
+			Date:            msgTime,
+			Filename:        filename,
+			ThreadTS:        threadTS,
+			ParentUserID:    parentUserID,
+			ReplyCount:      replyCount,
+			ReplyUsersCount: replyUsersCount,
+			LatestReply:     latestReply,
 		}
 
 		if err := idx.db.InsertMessage(message); err != nil {
