@@ -1,12 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/raesene/k8s-slack-searcher/cmd"
 
 	"github.com/spf13/cobra"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 var rootCmd = &cobra.Command{
@@ -23,11 +30,22 @@ Commands:
   list              List available databases`,
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version information",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("k8s-slack-searcher %s\n", version)
+		fmt.Printf("Commit: %s\n", commit)
+		fmt.Printf("Date: %s\n", date)
+	},
+}
+
 func init() {
 	// Add commands
 	rootCmd.AddCommand(cmd.IngestCmd)
 	rootCmd.AddCommand(cmd.SearchCmd)
 	rootCmd.AddCommand(cmd.ListCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 func main() {

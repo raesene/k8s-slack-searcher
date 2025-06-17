@@ -15,8 +15,22 @@ A command-line tool to index and search through Slack workspace archives. This t
 
 ### Prerequisites
 
-- Go 1.19 or later
 - SQLite3 (included with most systems)
+
+### Download Pre-built Binaries
+
+Download the latest release for your platform from the [releases page](https://github.com/raesene/k8s-slack-searcher/releases).
+
+Available platforms:
+- Linux (amd64, arm64)
+- macOS (amd64, arm64) 
+- Windows (amd64)
+
+### Install via Go
+
+```bash
+go install github.com/raesene/k8s-slack-searcher@latest
+```
 
 ### Build from Source
 
@@ -24,6 +38,12 @@ A command-line tool to index and search through Slack workspace archives. This t
 git clone https://github.com/raesene/k8s-slack-searcher.git
 cd k8s-slack-searcher
 go build -o k8s-slack-searcher
+```
+
+### Docker
+
+```bash
+docker pull ghcr.io/raesene/k8s-slack-searcher:latest
 ```
 
 ## Usage

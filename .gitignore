@@ -58,3 +58,6 @@ source-data/
 # Backup files
 *.bak
 *.backup
+
+# GoReleaser artifacts
+dist/
