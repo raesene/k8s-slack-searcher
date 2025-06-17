@@ -1,6 +1,6 @@
 # Kubernetes Slack Searcher
 
-A command-line tool to index and search through Slack workspace archives. This tool was built specifically for searching the Kubernetes Slack workspace archives but can be used with any Slack export data.
+A command-line tool to index and search through Slack workspace archives. This tool was built specifically for searching the Kubernetes Slack workspace archives but can be used with any Slack export data. Created primarily by Claude code.
 
 ## Features
 
@@ -44,6 +44,8 @@ go build -o k8s-slack-searcher
 ## Usage
 
 ### 1. Prepare Your Data
+
+The Kubernetes Slack export is available as a download referenced from [this document](https://github.com/kubernetes/community/blob/master/communication/slack-guidelines.md#workspace-channel-history) it contains the required content below, when unzipped (careful it'll unzip into the current directory so download it to the `source-data` dir)
 
 You'll need a Slack workspace export containing:
 - `users.json` - User information
