@@ -23,8 +23,9 @@ Download the latest release for your platform from the [releases page](https://g
 
 Available platforms:
 - Linux (amd64)
-- macOS (arm64/Apple Silicon) 
-- Windows (amd64)
+- macOS (arm64/Apple Silicon)
+
+Note: Windows users can build from source using `go install` (see below).
 
 ### Install via Go
 
